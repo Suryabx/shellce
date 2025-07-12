@@ -1,6 +1,34 @@
+# Cargo.toml
 [package]
 name = "shellflow"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+# Asynchronous runtime for I/O, timers, etc.
+tokio = { version = "1.38", features = ["full"] }
+
+# REPL (Read-Eval-Print Loop) library for input history and autocompletion
+rustyline = "14.0"
+rustyline-derive = "0.10" # For custom completer
+
+# Error handling
+anyhow = "1.0"
+
+# Serialization/Deserialization for config and memory persistence
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+toml = "0.8" # For config.toml
+
+# Logging
+log = "0.4"
+env_logger = "0.11"
+
+# Colorized output
+colored = "2.1"
+
+# For static initialization (e.g., command registry)
+lazy_static = "1.4"
+
+# For current date/time in `time` command (if we add one later, or for file timestamps)
+chrono = "0.4"
