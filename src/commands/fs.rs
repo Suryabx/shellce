@@ -1,5 +1,5 @@
 // src/commands/fs.rs
-// Implements core file system commands: ls, create file, read file, delete file.
+// Implements core file system commands: ls, create file, read file, delete file, cd, pwd.
 
 use anyhow::{Result, Context};
 use async_trait::async_trait;
@@ -54,6 +54,19 @@ impl Command for LsCommand {
 
         let mut file_list = Vec::new();
         let mut output_message = String::new();
+
+        // Add headers for non-JSON output
+        if !use_json_output {
+            output_message.push_str(&format!(
+                "{:<20} {:<10} {:>10} {:<20}\n",
+                "Name", "Type", "Size", "Created At"
+            ));
+            output_message.push_str(&format!(
+                "{:-<20} {:-<10} {:-<10} {:-<20}\n",
+                "", "", "", ""
+            ));
+        }
+
 
         while let Some(entry_res) = entries.next_entry().await.context("Failed to read directory entry") {
             let entry = match entry_res {
@@ -113,10 +126,7 @@ impl Command for LsCommand {
             )
         } else {
             CommandResult::success(
-                Some(format!(
-                    "{:<20} {:<10} {:>10} {:<20}\n{}",
-                    "Name", "Type", "Size", "Created At", output_message
-                )),
+                Some(output_message),
                 None,
             )
         }
@@ -290,3 +300,99 @@ impl Command for DeleteFileCommand {
     }
 }
 
+// --- cd command ---
+pub struct CdCommand;
+
+#[async_trait]
+impl Command for CdCommand {
+    fn name(&self) -> &'static str {
+        "cd"
+    }
+
+    fn description(&self) -> &'static str {
+        "Changes the current working directory."
+    }
+
+    fn usage(&self) -> &'static str {
+        "cd [path]"
+    }
+
+    async fn execute(
+        &self,
+        args: Vec<String>,
+        _var_manager: &VariableManager,
+        _config: &ShellConfig,
+        _command_registry: &CommandRegistry,
+    ) -> CommandResult {
+        let path_str = if args.is_empty() {
+            "~".to_string() // Default to home directory if no path is given
+        } else {
+            args[0].clone()
+        };
+
+        let path = PathBuf::from(&path_str);
+        info!("Attempting to change directory to: {:?}", path);
+
+        // Resolve "~" to home directory
+        let expanded_path = if path_str == "~" {
+            dirs::home_dir().unwrap_or_else(|| PathBuf::from("/"))
+        } else {
+            path
+        };
+
+        match std::env::set_current_dir(&expanded_path) {
+            Ok(_) => {
+                let new_current_dir = std::env::current_dir().unwrap_or_default();
+                info!("Changed directory to: {:?}", new_current_dir);
+                CommandResult::success(
+                    Some(format!("Changed directory to: {}", new_current_dir.display())),
+                    Some(json!({ "new_directory": new_current_dir.to_string_lossy() })),
+                )
+            },
+            Err(e) => {
+                error!("Failed to change directory to {:?}: {}", expanded_path, e);
+                CommandResult::error(format!("Failed to change directory to '{}': {}", path_str, e))
+            },
+        }
+    }
+}
+
+// --- pwd command ---
+pub struct PwdCommand;
+
+#[async_trait]
+impl Command for PwdCommand {
+    fn name(&self) -> &'static str {
+        "pwd"
+    }
+
+    fn description(&self) -> &'static str {
+        "Prints the current working directory."
+    }
+
+    fn usage(&self) -> &'static str {
+        "pwd"
+    }
+
+    async fn execute(
+        &self,
+        _args: Vec<String>,
+        _var_manager: &VariableManager,
+        _config: &ShellConfig,
+        _command_registry: &CommandRegistry,
+    ) -> CommandResult {
+        match std::env::current_dir() {
+            Ok(path) => {
+                info!("Current directory: {:?}", path);
+                CommandResult::success(
+                    Some(path.to_string_lossy().to_string()),
+                    Some(json!({ "current_directory": path.to_string_lossy() })),
+                )
+            },
+            Err(e) => {
+                error!("Failed to get current directory: {}", e);
+                CommandResult::error(format!("Failed to get current directory: {}", e))
+            },
+        }
+    }
+}

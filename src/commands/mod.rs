@@ -22,7 +22,7 @@ pub mod exit;
 pub mod source;
 pub mod ping;
 pub mod sleep;
-pub mod fs; // New: Declare the fs command module
+pub mod fs; // Declare the fs command module
 
 /// The `Command` trait defines the interface for all executable commands in ShellFlow.
 ///
@@ -77,11 +77,13 @@ lazy_static! {
         register_command(&mut registry, Box::new(source::SourceCommand));
         register_command(&mut registry, Box::new(ping::PingCommand));
         register_command(&mut registry, Box::new(sleep::SleepCommand));
-        // New: Register file system commands
+        // Register file system commands
         register_command(&mut registry, Box::new(fs::LsCommand));
         register_command(&mut registry, Box::new(fs::CreateFileCommand));
         register_command(&mut registry, Box::new(fs::ReadFileCommand));
         register_command(&mut registry, Box::new(fs::DeleteFileCommand));
+        register_command(&mut registry, Box::new(fs::CdCommand)); // New: Register cd command
+        register_command(&mut registry, Box::new(fs::PwdCommand)); // New: Register pwd command
 
 
         info!("Registered {} commands.", registry.len());
