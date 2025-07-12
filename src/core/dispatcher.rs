@@ -1,15 +1,16 @@
 // src/core/dispatcher.rs
-// Contains the main command dispatching logic.
+// Contains the main command dispatching logic, including pipeline execution.
 
 use anyhow::{Result, Context};
 use log::{info, error, debug};
-use crate::core::types::{CommandResult, CommandRegistry};
+use crate::core::types::{CommandResult, CommandRegistry, PipelineCommand, CommandOutput};
 use crate::core::variables::VariableManager;
 use crate::core::config::ShellConfig;
 use crate::parser; // Import the parser module
+use serde_json::Value as JsonValue;
 
 /// `CommandDispatcher` is responsible for parsing input, resolving aliases,
-/// and executing the appropriate command.
+/// and executing the appropriate command or pipeline.
 pub struct CommandDispatcher {
     command_registry: CommandRegistry,
 }
@@ -20,12 +21,12 @@ impl CommandDispatcher {
         CommandDispatcher { command_registry }
     }
 
-    /// Dispatches a command based on the input line.
+    /// Dispatches a command or pipeline based on the input line.
     ///
     /// This method performs:
     /// 1. Alias resolution.
-    /// 2. Command parsing and variable resolution.
-    /// 3. Command execution via the `Command` trait.
+    /// 2. Pipeline parsing and variable resolution.
+    /// 3. Sequential command execution within the pipeline, passing output as input.
     ///
     /// # Arguments
     /// * `command_line` - The raw string input from the user.
@@ -52,28 +53,62 @@ impl CommandDispatcher {
             }
         }
 
-        // 2. Command Parsing and Variable Resolution
-        let (cmd_name, args) = match parser::parse_command(&effective_command_line, var_manager) {
-            Ok((name, parsed_args)) => (name, parsed_args),
+        // 2. Pipeline Parsing and Variable Resolution
+        let pipeline_commands = match parser::parse_pipeline(&effective_command_line, var_manager) {
+            Ok(cmds) => cmds,
             Err(e) => {
-                error!("Command parsing error: {}", e);
+                error!("Pipeline parsing error: {}", e);
                 return CommandResult::error(format!("Parsing error: {}", e));
             }
         };
 
-        // 3. Command Execution
-        if let Some(command) = self.command_registry.get(&cmd_name) {
-            // Check if command is enabled by config (if `enabled_commands` is not empty)
-            if !config.enabled_commands.is_empty() && !config.enabled_commands.contains(&cmd_name) {
-                error!("Command '{}' is disabled by configuration.", cmd_name);
-                return CommandResult::error(format!("Command '{}' is disabled.", cmd_name));
+        let mut last_output_data: Option<JsonValue> = None;
+
+        for (i, p_cmd) in pipeline_commands.into_iter().enumerate() {
+            let cmd_name = p_cmd.name;
+            let mut args = p_cmd.args;
+
+            // If there's previous output, pass it as a special argument (e.g., `--input-data`)
+            // This is a common pattern for structured pipelines.
+            if let Some(prev_data) = last_output_data.take() {
+                // Here, we could decide how to pass structured data.
+                // For simplicity, we'll stringify it and add it as an argument.
+                // A more advanced system might use a dedicated input stream or context.
+                args.push("--input-data".to_string());
+                args.push(prev_data.to_string()); // Pass JSON string
+                debug!("Piped data from previous command to '{}': {}", cmd_name, prev_data);
             }
 
-            info!("Executing command: '{}' with args: {:?}", cmd_name, args);
-            command.execute(args, var_manager, config, &self.command_registry).await
-        } else {
-            error!("Unknown command: '{}'", cmd_name);
-            CommandResult::error(format!("Unknown command: '{}'. Type 'help' for a list of commands.", cmd_name))
+            // 3. Command Execution
+            if let Some(command) = self.command_registry.get(&cmd_name) {
+                // Check if command is enabled by config (if `enabled_commands` is not empty)
+                if !config.enabled_commands.is_empty() && !config.enabled_commands.contains(&cmd_name) {
+                    error!("Command '{}' is disabled by configuration.", cmd_name);
+                    return CommandResult::error(format!("Command '{}' is disabled.", cmd_name));
+                }
+
+                info!("Executing command: '{}' with args: {:?}", cmd_name, args);
+                let result = command.execute(args, var_manager, config, &self.command_registry).await;
+
+                if result.success {
+                    // Capture output data for the next command in the pipeline
+                    last_output_data = result.output.and_then(|o| o.data);
+                    // If it's the last command, return its full result
+                    if i == pipeline_commands.len() - 1 {
+                        return result;
+                    }
+                } else {
+                    // If any command in the pipeline fails, the whole pipeline fails
+                    error!("Pipeline command '{}' failed: {:?}", cmd_name, result.error_message);
+                    return result;
+                }
+            } else {
+                error!("Unknown command in pipeline: '{}'", cmd_name);
+                return CommandResult::error(format!("Unknown command in pipeline: '{}'.", cmd_name));
+            }
         }
+
+        // If the pipeline ran successfully but the last command had no output, return success.
+        CommandResult::success(Some("Pipeline executed successfully.".to_string()), last_output_data)
     }
 }

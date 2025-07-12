@@ -52,6 +52,13 @@ pub type VariableStore = std::collections::HashMap<String, String>;
 /// A type alias for the command dispatcher, mapping command names to boxed Command trait objects.
 pub type CommandRegistry = std::collections::HashMap<String, Box<dyn crate::commands::Command + Send + Sync>>;
 
+/// Represents a single command within a pipeline.
+#[derive(Debug, Clone)]
+pub struct PipelineCommand {
+    pub name: String,
+    pub args: Vec<String>,
+}
+
 // Custom completer for rustyline, used for autocompletion
 pub struct ShellFlowCompleter {
     pub commands: Vec<String>,

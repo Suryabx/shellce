@@ -6,6 +6,7 @@ use async_trait::async_trait;
 use std::collections::HashMap;
 use lazy_static::lazy_static;
 use log::info;
+use serde_json::Value as JsonValue; // Import JsonValue for trait signature
 
 use crate::core::types::{CommandResult, CommandRegistry};
 use crate::core::variables::VariableManager;
@@ -23,7 +24,8 @@ pub mod source;
 pub mod ping;
 pub mod sleep;
 pub mod fs;
-pub mod exec; // New: Declare the exec command module
+pub mod exec;
+pub mod count; // New: Declare the count command module
 
 /// The `Command` trait defines the interface for all executable commands in ShellFlow.
 ///
@@ -85,7 +87,8 @@ lazy_static! {
         register_command(&mut registry, Box::new(fs::DeleteFileCommand));
         register_command(&mut registry, Box::new(fs::CdCommand));
         register_command(&mut registry, Box::new(fs::PwdCommand));
-        register_command(&mut registry, Box::new(exec::ExecCommand)); // New: Register exec command
+        register_command(&mut registry, Box::new(exec::ExecCommand));
+        register_command(&mut registry, Box::new(count::CountCommand)); // New: Register count command
 
 
         info!("Registered {} commands.", registry.len());
@@ -102,3 +105,4 @@ fn register_command(registry: &mut CommandRegistry, command: Box<dyn Command + S
 pub fn get_command_registry() -> &'static CommandRegistry {
     &COMMAND_REGISTRY
 }
+
