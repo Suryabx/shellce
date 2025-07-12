@@ -32,3 +32,9 @@ lazy_static = "1.4"
 
 # For current date/time in `time` command (if we add one later, or for file timestamps)
 chrono = "0.4"
+
+# For async trait
+async-trait = "0.1"
+
+# For resolving home directory in 'cd' command
+dirs = "5.0"
