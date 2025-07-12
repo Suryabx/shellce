@@ -1,2 +1,28 @@
-# Example configuration file for user preferences
-prompt = "shellflow> "
+# config.toml - Shellce Configuration
+
+# Customize the prompt string
+prompt = "sc> " # Changed from "cs> "
+
+# Define command aliases
+[aliases]
+hi = "greet"
+vars = "list-vars"
+save = "save-memory"
+load = "load-memory"
+p = "ping"
+sl = "sleep"
+run = "exec"
+
+# List of enabled commands. If this list is empty, all registered commands are enabled.
+# If you list commands here, only those listed will be active.
+# Example: enabled_commands = ["greet", "echo", "list-vars"]
+enabled_commands = []
+
+# Path to the history file
+history_file = "shellce_history.txt" # Changed from "coreshell_history.txt"
+
+# Theme settings for output colors
+[theme]
+prompt_color = "green"  # Options: "red", "green", "blue", "yellow", "cyan", "magenta", "white", "black"
+success_color = "cyan"
+error_color = "red"
