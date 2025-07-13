@@ -779,7 +779,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "shellflow"
+name = "shellce"
 version = "0.1.0"
 dependencies = [
  "anyhow",

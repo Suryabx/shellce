@@ -4,9 +4,11 @@
 use anyhow::Result;
 use serde::{Serialize, Deserialize};
 use serde_json::Value as JsonValue;
+use rustyline::error::ReadlineError; // Corrected import path
+use rustyline::completion::extract_word; // Corrected import for extract_word
 
 /// Represents the structured output of any Shellce command.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)] // Added Clone derive
 pub struct CommandOutput {
     /// A human-readable message, optional.
     pub message: Option<String>,
@@ -73,8 +75,8 @@ impl rustyline::completion::Completer for ShellFlowCompleter {
         line: &str,
         pos: usize,
         _ctx: &rustyline::Context<'_>,
-    ) -> Result<(usize, Vec<String>), rustyline::rustyline::error::ReadlineError> {
-        let (start, word) = rustyline::util::extract_word(line, pos, None);
+    ) -> Result<(usize, Vec<String>), ReadlineError> { // Corrected ReadlineError path
+        let (start, word) = extract_word(line, pos, None); // Corrected usage
 
         let mut completions = Vec::new();
 
@@ -111,7 +113,7 @@ impl rustyline::completion::Completer for ShellFlowHelper {
         line: &str,
         pos: usize,
         ctx: &rustyline::Context<'_>,
-    ) -> Result<(usize, Vec<String>), rustyline::rustyline::error::ReadlineError> {
+    ) -> Result<(usize, Vec<String>), ReadlineError> { // Corrected ReadlineError path
         self.completer.complete(line, pos, ctx)
     }
 }
