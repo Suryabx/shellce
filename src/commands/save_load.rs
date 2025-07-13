@@ -4,7 +4,7 @@
 use anyhow::Result;
 use async_trait::async_trait;
 use std::path::PathBuf;
-use crate::commands::Command;
+use crate::commands::command::Command;
 use crate::core::types::{CommandResult, CommandRegistry};
 use crate::core::variables::VariableManager;
 use crate::core::config::ShellConfig;
@@ -13,6 +13,7 @@ use log::{info, error};
 
 pub struct SaveMemoryCommand;
 
+#[async_trait]
 #[async_trait]
 impl Command for SaveMemoryCommand {
     fn name(&self) -> &'static str {
@@ -31,8 +32,8 @@ impl Command for SaveMemoryCommand {
         &self,
         args: Vec<String>,
         var_manager: &VariableManager,
-        _config: &ShellConfig,
-        _command_registry: &CommandRegistry,
+        config: &ShellConfig,
+        command_registry: &CommandRegistry,
     ) -> CommandResult {
         let path_str = if args.is_empty() {
             "shellce_memory.json".to_string() // Updated default path

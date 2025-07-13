@@ -12,12 +12,12 @@ use serde_json::Value as JsonValue;
 /// `CommandDispatcher` is responsible for parsing input, resolving aliases,
 /// and executing the appropriate command or pipeline.
 pub struct CommandDispatcher {
-    command_registry: CommandRegistry,
+    command_registry: &'static CommandRegistry, // Changed to take a static reference
 }
 
 impl CommandDispatcher {
     /// Creates a new `CommandDispatcher` with a given command registry.
-    pub fn new(command_registry: CommandRegistry) -> Self {
+    pub fn new(command_registry: &'static CommandRegistry) -> Self { // Changed signature
         CommandDispatcher { command_registry }
     }
 
@@ -63,8 +63,9 @@ impl CommandDispatcher {
         };
 
         let mut last_output_data: Option<JsonValue> = None;
+        let pipeline_len = pipeline_commands.len(); // Get length before moving
 
-        for (i, p_cmd) in pipeline_commands.into_iter().enumerate() {
+        for (i, p_cmd) in pipeline_commands.into_iter().enumerate() { // `pipeline_commands` is moved here
             let cmd_name = p_cmd.name;
             let mut args = p_cmd.args;
 
@@ -92,9 +93,9 @@ impl CommandDispatcher {
 
                 if result.success {
                     // Capture output data for the next command in the pipeline
-                    last_output_data = result.output.and_then(|o| o.data);
+                    last_output_data = result.output.clone().and_then(|o| o.data); // Cloned output for next use
                     // If it's the last command, return its full result
-                    if i == pipeline_commands.len() - 1 {
+                    if i == pipeline_len - 1 { // Use stored length
                         return result;
                     }
                 } else {
@@ -112,3 +113,4 @@ impl CommandDispatcher {
         CommandResult::success(Some("Pipeline executed successfully.".to_string()), last_output_data)
     }
 }
+

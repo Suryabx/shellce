@@ -5,7 +5,7 @@ use anyhow::Result;
 use async_trait::async_trait;
 use serde_json::json;
 use std::time::Duration;
-use crate::commands::Command;
+use crate::commands::command::Command;
 use crate::core::types::{CommandResult, CommandRegistry};
 use crate::core::variables::VariableManager;
 use crate::core::config::ShellConfig;
