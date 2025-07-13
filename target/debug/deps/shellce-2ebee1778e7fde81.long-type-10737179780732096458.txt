@@ -1,0 +1,1 @@
+HashMap<std::string::String, Box<dyn for<'a> Fn(Vec<std::string::String>, &'a mut VariableStore) -> Result<std::string::String, std::string::String> + Send + Sync>>

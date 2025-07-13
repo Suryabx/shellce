@@ -5,11 +5,9 @@ use tokio::fs::{self, File};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
 use crate::core::types::{CommandResult, CommandRegistry};
+use crate::commands::command::Command;
 
 pub struct FsCommand;
-
-#[async_trait]
-use crate::commands::command::Command;
 
 #[async_trait]
 impl Command for FsCommand {

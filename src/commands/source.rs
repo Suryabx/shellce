@@ -6,11 +6,9 @@ use tokio::fs::File;
 use tokio::io::{AsyncBufReadExt, BufReader};
 
 use crate::core::types::{CommandResult, CommandRegistry};
+use crate::commands::command::Command;
 
 pub struct SourceCommand;
-
-#[async_trait]
-use crate::commands::command::Command;
 
 #[async_trait]
 impl Command for SourceCommand {

@@ -18,6 +18,7 @@ mod ping;
 mod sleep;
 mod fs;
 mod count;
+pub mod command;
 
 pub fn get_command_registry() -> CommandRegistry {
     let mut registry: CommandRegistry = HashMap::new();
