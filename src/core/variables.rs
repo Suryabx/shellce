@@ -1,5 +1,5 @@
 // src/core/variables.rs
-// Manages the in-memory variable store for ShellFlow.
+// Manages the in-memory variable store for Shellce.
 
 use crate::core::types::VariableStore;
 use std::sync::{Arc, Mutex};

@@ -63,8 +63,8 @@ impl Command for CountCommand {
         }
 
         let count = match input_data {
-            Some(JsonValue::Array(arr)) => arr.len(),
-            Some(JsonValue::Object(_)) => 1, // Treat a single object as 1 item
+            Some(serde_json::Value::Array(arr)) => arr.len(),
+            Some(serde_json::Value::Object(_)) => 1, // Treat a single object as 1 item
             Some(_) => {
                 info!("Count command received non-array/object input, treating as 0 or 1.");
                 1 // Treat any other single value as 1 item for counting purposes

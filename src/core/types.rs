@@ -1,11 +1,11 @@
 // src/core/types.rs
-// Defines the fundamental data structures for ShellFlow.
+// Defines the fundamental data structures for Shellce.
 
 use anyhow::Result;
 use serde::{Serialize, Deserialize};
 use serde_json::Value as JsonValue;
 
-/// Represents the structured output of any ShellFlow command.
+/// Represents the structured output of any Shellce command.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CommandOutput {
     /// A human-readable message, optional.
@@ -14,7 +14,7 @@ pub struct CommandOutput {
     pub data: Option<JsonValue>,
 }
 
-/// Represents the result of a ShellFlow command execution.
+/// Represents the result of a Shellce command execution.
 /// Uses `anyhow::Result` for ergonomic error handling.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CommandResult {

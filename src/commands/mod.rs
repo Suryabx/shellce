@@ -25,9 +25,9 @@ pub mod ping;
 pub mod sleep;
 pub mod fs;
 pub mod exec;
-pub mod count; // New: Declare the count command module
+pub mod count;
 
-/// The `Command` trait defines the interface for all executable commands in ShellFlow.
+/// The `Command` trait defines the interface for all executable commands in Shellce.
 ///
 /// Commands must be `Send` and `Sync` to be safely used across async tasks
 /// and stored in a shared `CommandRegistry`.
@@ -88,7 +88,7 @@ lazy_static! {
         register_command(&mut registry, Box::new(fs::CdCommand));
         register_command(&mut registry, Box::new(fs::PwdCommand));
         register_command(&mut registry, Box::new(exec::ExecCommand));
-        register_command(&mut registry, Box::new(count::CountCommand)); // New: Register count command
+        register_command(&mut registry, Box::new(count::CountCommand));
 
 
         info!("Registered {} commands.", registry.len());
@@ -105,4 +105,3 @@ fn register_command(registry: &mut CommandRegistry, command: Box<dyn Command + S
 pub fn get_command_registry() -> &'static CommandRegistry {
     &COMMAND_REGISTRY
 }
-

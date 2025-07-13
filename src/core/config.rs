@@ -54,11 +54,11 @@ impl Default for ThemeConfig {
 }
 
 fn default_prompt() -> String {
-    "shellflow> ".to_string()
+    "sc> ".to_string() // Updated default prompt
 }
 
 fn default_history_file() -> String {
-    "shellflow_history.txt".to_string()
+    "shellce_history.txt".to_string() // Updated default history file name
 }
 
 fn default_prompt_color() -> String {
